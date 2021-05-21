@@ -1,4 +1,5 @@
 #include <iostream>
+#include "../fibonacci/Fib.h"
 
 typedef int Rank;
 
@@ -271,6 +272,86 @@ template <typename T> int Vector<T>::disordered() const
         if (_elem[i - 1] > _elem[i]) n++;
     return n;
 }
+
+// Remove duplicated elements for ordered vector
+// time complexity - O(n)
+template <typename T> int Vector<T>::uniquify()
+{
+    Rank i = 0, j = 0;
+    while (++j < _size)
+        if (_elem[i] != _elem[j])
+            _elem[++i] = _elem[j];
+    _size = ++i; shrink();
+    return j - i;
+}
+
+// Search in sorted vector
+template <typename T>
+Rank Vector<T>::search(T const& e, Rank lo, Rank hi) const
+{
+    // 50% chance uses binary serach, 50% chance uses fibonacci serach
+    return (rand() % 2) ? binSearch(_elem, e, lo, hi) : fibSearch(_elem, e, lo, hi);
+}
+
+// Binary search, search e in sorted interval [lo, hi)
+// Version A: 
+//      cannot return the result with biggest rank
+//      cannot specify the position that failure happens 
+// template <typename T> static Rank binSearch(T* A, T const& e, Rank lo, Rank hi)
+// {
+//     while (lo < hi)
+//     {
+//         Rank mi = (lo + hi) >> 1;
+//         if (e < A[mi]) hi = mi;
+//         else if (A[mi] < e) lo = mi + 1;
+//         else return mi;
+//     }
+//     return -1;
+// }
+
+// Binary search
+// Version B: 
+//      divide into two cases
+// template <typename T> static Rank binSearch(T* A, T const & e, Rank lo, Rank hi)
+// {
+//     while (1 < hi - lo)
+//     {
+//         Rank mi = (lo + hi) >> 1;
+//         (e < A[mi]) ? hi = mi : lo = mi;
+//     }
+
+//     return (e == A[lo]) ? lo : -1;
+// }
+
+// Binary serach
+// Version C:
+//      
+template <typename T> static Rank binSearch(T* A, T const& e, Rank lo, Rank hi)
+{
+    while (lo < hi)
+    {
+        Rank mi = (lo + hi) >> 1;
+        (e < A[mi]) ? hi = mi : lo = mi + 1;
+    }
+    return --lo;
+}
+
+// Fibonacci search
+// TODO: Don't get it for now - 05/21
+template <typename T> static Rank fibSearch(T* A, T const& e, Rank lo, Rank hi)
+{
+    Fib fib (hi-lo);
+    while (lo < hi)
+    {
+        while (hi - lo < fib.get()) fib.prev();
+        Rank mi = lo + fib.get() - 1;
+        if (e < A[mi]) hi = mi;
+        else if (A[mi] < e) lo = mi + 1;
+        else return mi;
+    }
+    return -1;
+}
+
 
 int main()
 {
