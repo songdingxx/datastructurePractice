@@ -381,7 +381,7 @@ template <typename T> bool Vector<T>::bubble(Rank lo, Rank hi)
             sorted = false;
             swap(_elem[lo - 1], _elem[lo]);
         }
-    return sorteds;
+    return sorted;
 }
 
 // Merge sort
@@ -407,11 +407,4 @@ void Vector<T>::merge(Rank lo, Rank mi, Rank hi)
         if ((k < lc) && (!(j < lb) || (C[k] <= B[j]))) A[i++] = C[k++];
     }
     delete [] B;
-}
-
-
-
-int main()
-{
-
 }
