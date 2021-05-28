@@ -6,27 +6,27 @@ class Stack: public Vector<T>
 {
 public:
     // push elements to stack
-    void push(T const& e) {insert(size(), e);}
+    void push(T const& e) {this->insert(this->size(), e);}
     // pop out the top element
-    T pop() {return remove(size() - 1);}
+    T pop() {return this->remove(this->size() - 1);}
     // return last element
-    T& top() {return (*this)[size() - 1];}
+    T& top() {return (*this)[this->size() - 1];}
 };
 
 // convert to n base number
 // version 1
-void convert(Stack<char>& S, __int64 n, int base)
+void convert_v1(Stack<char>& S, __int64 n, int base)
 {
     static char digit[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
     if (0 < n)
     {
         S.push(digit[n % base]);
-        convert(S, n / base, base);
+        convert_v1(S, n / base, base);
     }
 }
 
 // version 2
-void convert(Stack<char>& S, __int64 n, int base)
+void convert_v2(Stack<char>& S, __int64 n, int base)
 {
     static char digit[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
     while (n > 0)
@@ -57,17 +57,17 @@ int divide(const char exp[], int lo, int hi)
     return mi;
 }
 
-bool paren(const char exp[], int lo, int hi)
+bool paren_v1(const char exp[], int lo, int hi)
 {
     trim(exp, lo, hi); if (lo > hi) return true;
     if (exp[lo] != '(') return false;
     if (exp[hi] != ')') return false;
     int mi = divide(exp, lo, hi);
-    return paren(exp, lo + 1, mi - 1) && paren(exp, mi + 1, hi);
+    return paren_v1(exp, lo + 1, mi - 1) && paren_v1(exp, mi + 1, hi);
 }
 
 // by iteration
-bool paren(const char exp[], int lo, int hi)
+bool paren_v2(const char exp[], int lo, int hi)
 {
     Stack<char> S;
     for (int i = lo; i < hi; i++)
@@ -102,47 +102,47 @@ const char pri[N_OPTR][N_OPTR] = { //运算符优先等级 [栈顶] [弼前]
 };
 
 // TODO: implement those functions
-float evaluate(char* S, char*& RPN)
-{
-    Stack<float> opnd; Stack<char> optr;
-    optr.push('\0');
-    while (!optr.empty())
-    {
-        if (isdigit(*S))
-        {
-            readNumber(S, opnd); append(RPN, opnd.top());
-        }
-        else
-        {
-            switch(orderBetween(optr.top(), *S))
-            {
-                case '<':
-                    optr.push(*S); S++;
-                    break;
-                case '=':
-                    optr.pop(); S++;
-                    break;
-                case '>':
-                    {
-                        char op = optr.pop(); append(RPN, op);
-                        if ('!' == op)
-                        {
-                            float pOpnd = opnd.pop();
-                            opnd.push(calcu(op, pOpnd));
-                        }
-                        else
-                        {
-                            float pOpnd2 = opnd.pop(), pOpnd1 = opnd.pop();
-                            opnd.push(calcu(pOpnd1, op, pOpnd2));
-                        }
-                    }
-                    break;
-                default: exit(-1);
-            }
-        }
-        return opnd.pop();
-    }
-}
+// float evaluate(char* S, char*& RPN)
+// {
+//     Stack<float> opnd; Stack<char> optr;
+//     optr.push('\0');
+//     while (!optr.empty())
+//     {
+//         if (isdigit(*S))
+//         {
+//             readNumber(S, opnd); append(RPN, opnd.top());
+//         }
+//         else
+//         {
+//             switch(orderBetween(optr.top(), *S))
+//             {
+//                 case '<':
+//                     optr.push(*S); S++;
+//                     break;
+//                 case '=':
+//                     optr.pop(); S++;
+//                     break;
+//                 case '>':
+//                     {
+//                         char op = optr.pop(); append(RPN, op);
+//                         if ('!' == op)
+//                         {
+//                             float pOpnd = opnd.pop();
+//                             opnd.push(calcu(op, pOpnd));
+//                         }
+//                         else
+//                         {
+//                             float pOpnd2 = opnd.pop(), pOpnd1 = opnd.pop();
+//                             opnd.push(calcu(pOpnd1, op, pOpnd2));
+//                         }
+//                     }
+//                     break;
+//                 default: exit(-1);
+//             }
+//         }
+//         return opnd.pop();
+//     }
+// }
 
 // Reverse polish notation
 // TODO: Implete this function
