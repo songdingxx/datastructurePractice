@@ -162,3 +162,121 @@ float evaluate(char* S, char*& RPN)
 //  迒回栈顶; //也是栈底
 // }
 
+// n queens
+struct Queen
+{
+    int x, y;
+    Queen(int xx = 0, int yy = 0) : x(xx), y(yy) {};
+    bool operator==(Queen const& q) const
+    {
+        return 
+            (x == q.x)
+            || (y == q.y)
+            || (x + y == q.x + q.y)
+            || (x - y == q.x - q.y);
+    }
+    bool operator!=(Queen const& q) const {return !(*this == q);}
+};
+
+void placeQueens(int N)
+{
+    Stack<Queen> solu;
+    Queen q (0, 0);
+    do
+    {
+        if (N <= solu.size() || N <= q.y)
+        {
+            q = solu.pop(); q.y++;
+        }
+        else {
+            while ((q.y < N) && (0 <= solu.find(q)))
+            {
+                q.y++;
+                // wtf is nCheck?
+                // nCheck++;
+            }
+            if (N > q.y)
+            {
+                solu.push(q);
+                if (N <= solu.size()) 
+                    // wtf is nSolu? count solutions.
+                    // nSolu++;
+                q.x++; q.y = 0;
+            }
+        }
+    // TODO: when it's gonna break?
+    // q.x = 0 and q.x > N
+    } while((0 < q.x) || (q.y < N));
+}
+
+// Find path
+// unit's status
+typedef enum {AVAILABLE, ROUTE, BACKRACKED, WALL} Status;
+
+// directions
+typedef enum {UNKNOWN, EAST, SOUTH, WEST, NORTH, NO_WAY} ESWN;
+
+inline ESWN nextESWN(ESWN eswn) {return ESWN(eswn + 1);}
+
+struct Cell
+{
+    int x, y; Status status;
+    ESWN incoming, outgoing;
+};
+
+#define LABY_MAX 24
+Cell laby[LABY_MAX][LABY_MAX];
+
+// look for neighbors
+inline Cell* neighbor(Cell* cell)
+{
+    switch(cell->outgoing)
+    {
+        case EAST: return cell + LABY_MAX;
+        case SOUTH: return cell + 1;
+        case WEST: return cell - LABY_MAX;
+        case NORTH: return cell - 1;
+        default: exit(-1);
+    }
+}
+
+inline Cell* advance(Cell* cell)
+{
+    Cell* next;
+    switch(cell->outgoing)
+    {
+        // TODO: why we don't need to overlaod + here? what does cell + int mean?
+        case EAST: next = cell + LABY_MAX; next->incoming = WEST; break;
+        case SOUTH: next = cell + 1; next->incoming = NORTH; break;
+        case WEST: next = cell - LABY_MAX; next->incoming = EAST; break;
+        case NORTH: next = cell - 1; next->incoming = SOUTH; break;
+        default: exit(-1);
+    }
+    return next;
+}
+
+bool labyrinth(Cell Laby[LABY_MAX][LABY_MAX], Cell* s, Cell* t)
+{
+    if ((AVAILABLE != s->status) || (AVAILABLE != t->status)) return false;
+    Stack<Cell*> path;
+    s->incoming = UNKNOWN; s->status = ROUTE; path.push(s);
+    do
+    {
+        Cell* c = path.top();
+        if (c == t) return true;
+        while (NO_WAY > (c->outgoing = nextESWN(c->outgoing)))
+        {
+            if (AVAILABLE == neighbor(c)->status) break;
+        }
+        if (NO_WAY <= c->outgoing)
+        {
+            // Why we assign value to c here?
+            c->status = BACKRACKED; c = path.pop();
+        }
+        else
+        {
+            path.push(c = advance(c)); c->outgoing = UNKNOWN; c->status = ROUTE;
+        }
+    } while (!path.empty());
+    return false;
+}
