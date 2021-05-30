@@ -1,4 +1,6 @@
 #include <cstdlib>
+#include "../stackAddQueue/stack.h"
+#include "../stackAddQueue/queue.h"
 
 // Get node's pointer
 #define BinNodePosi(T) BinNode<T>*
@@ -119,7 +121,7 @@ void BinNode<T>::travIn(VST& visit)
     }
 }
 
-// Pre-order traverse
+// Pre-order traversal
 template <typename T, typename VST>
 void travPre_R(BinNodePosi(T) x, VST& visit)
 {
@@ -128,3 +130,180 @@ void travPre_R(BinNodePosi(T) x, VST& visit)
     travPre_R(x->lc, visit);
     travPre_L(x->rc, visit);
 }
+
+// updated version
+template <typename T, typename VST>
+static void visitAlongLeftBranch(BinNodePosi(T) x, VST& visit, Stack<BinNodePosi(T)>& S)
+{
+    while (x)
+    {
+        visit(x->data);
+        if (x->rc) S.push(x->rc);
+        x = x->lc;
+    }
+}
+
+template <typename T, typename VST>
+void travPre_I2(BinNodePosi(T) x, VST& visit)
+{
+    Stack<BinNodePosi(T)> S;
+    while (true)
+    {
+        visitAlongLeftBranch(x, visit, S);
+        if (S.empty()) break;
+        x = S.pop();
+    }
+}
+
+// Post-order traversal
+template <typename T, typename VST>
+void travPost_R(BinNodePosi(T) x, VST& visit)
+{
+    if (!x) return;
+    travPost_R(x->lc, visit);
+    travPost_R(x->rc, visit);
+    visit(x->data);
+}
+
+// TODO: what if push(nullptr)
+template <typename T>
+static void gotoHLVFL(Stack<BinNodePosi(T)>& S)
+{
+    while (BinNodePosi(T) x = S.top())
+    {
+        if (HasLChild(*x))
+        {
+            if (HasRChild(*x)) S.push(x->rc);
+            S.push(x->lc);
+        }
+        else S.push(x->rc);
+    }
+    S.pop();
+}
+
+template <typename T, typename VST>
+void travPost_I(BinNodePosi(T) x, VST& visit)
+{
+    Stack<BinNodePosi(T)> S;
+    if (x) S.push(x);
+    while (!S.empty())
+    {
+        if (S.top() != x->parent) gotoHLVFL(S);
+        x = S.pop(); visit(x->data);
+    }
+}
+
+// Inorder traversal
+template <typename T, typename VST>
+void travIn_R(BinNodePosi(T) x, VST& visit)
+{
+    if (!x) return;
+    travIn_R(x->lc, visit);
+    visit(x->data);
+    travIn_R(x->rc, visit);
+}
+
+// updated version
+template <typename T, typename VST>
+static void visitAlongLeftBranch_In(BinNodePosi(T) x, Stack<BinNodePosi(T)>& S)
+{
+    while (x)
+    {
+        S.push(x);
+        x = x->lc;
+    }
+}
+
+// iteration - version 1
+template <typename T, typename VST>
+void travIn_I1(BinNodePosi(T) x, VST& visit)
+{
+    Stack<BinNodePosi(T)> S;
+    while (true)
+    {
+        visitAlongLeftBranch_In(x, S);
+        if (S.empty()) break;
+        x = S.pop(); visit(x->data);
+        x = x->rc;
+    }
+}
+
+// iteration - version 2
+template <typename T, typename VST>
+void tracIn_I2(BinNodePosi(T) x, VST& visit)
+{
+    Stack<BinNodePosi(T)> S;
+    while (true)
+    {
+        if (x)
+        {
+            S.push(x);
+            x = x->lc;
+        }
+        else if (!S.empty())
+        {
+            x = S.pop();
+            visit(x->data);
+            x = x->rc;
+        }
+        else break;
+    }
+}
+
+// iteration - version 3
+template <typename T, typename VST>
+void travIn_I3(BinNodePosi(T) x, VST& visit)
+{
+    bool backtrack = false;
+    while (true)
+    {
+        if (!backtrack && HasLChilld(*x)) x = x->lc;
+        else 
+        {
+            visit(x->data);
+            if (HasRChild(*x))
+            {
+                x = x->rc;
+                backtrack = false;
+            }
+            else
+            {
+                if (!(x = x->succ())) break;
+                backtrack = true;
+            }
+        }
+    }
+}
+
+// traverse by level
+template <typename T>
+template <typename VST>
+void BinNode<T>::travLevel(VST& visit)
+{
+    Queue<BinNodePosi(T)> Q;
+    Q.enuqeue(this);
+    while(!Q.empty())
+    {
+        BinNodePosi(T) x = Q.dequeue(); visit(x->data);
+        if (HasLChild(*x)) Q.enqueue(x->lc);
+        if (HasRChild(*x)) Q.enqueue(x->rc);
+    }
+}
+// direct successor in inorder
+template <typename T>
+BinNodePosi(T) BinNode<T>::succ()
+{
+    BinNodePosi(T) s = this;
+    if (rc)
+    {
+        s = rc;
+        while (HasLChild(*s)) s = s->lc;
+    }
+    else
+    {
+        while (IsRChild(*s)) s = s->parent;
+        s = s->parent;
+    }
+    return s;
+}
+
